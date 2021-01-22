@@ -1,6 +1,5 @@
 import io
 from datetime import datetime, timedelta
-from enum import Enum
 from math import floor
 from struct import pack
 
@@ -264,7 +263,7 @@ class MessageLap(FitMessage):
                     name[:16].encode('UTF-8'))
 
 
-class Serializer:
+class FitEncode:
     def __init__(self, stream: io.IOBase = None):
         self.crc = 0
         self.definitions = list()
