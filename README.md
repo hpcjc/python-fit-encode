@@ -34,7 +34,7 @@ class LocalRecord(messages.Record):
 
 
 with open('file.fit', 'bw') as f:
-    fit = FitEncode(stream=f)
+    fit = FitEncode(buffer=f)
     file_id = LocalFileId()
     fit.add_definition(file_id)
     fit.add_record(
@@ -48,11 +48,13 @@ with open('file.fit', 'bw') as f:
     fit.add_record(
         record.pack(heart_rate=120, cadence=85,
                     speed=floor((45/3.6) * 1000), power=311,
-                    timestamp=floor(datetime(2021, 1, 2, 12, 15, 0).timestamp() - 631065600))
+                    timestamp=floor(
+                        datetime(2021, 1, 2, 12, 15, 0).timestamp() - 631065600)))
     fit.add_record(
         record.pack(heart_rate=121, cadence=88,
                     speed=floor((45.2/3.6) * 1000), power=330,
-                    timestamp=floor(datetime(2021, 1, 2, 12, 15, 1).timestamp() - 631065600))
+                    timestamp=floor(
+                        datetime(2021, 1, 2, 12, 15, 1).timestamp() - 631065600)))
     fit.finish()
 ```
 
@@ -73,7 +75,8 @@ from math import floor
 
 
 class LocalFileId(messages.FileId):
-    manufacturer = messages.FileId.manufacture
+    """ Subset of the global FileId"""
+    manufacturer = messages.FileId.manufacturer
     type = messages.FileId.type
     product = messages.FileId.product
     serial_number = messages.FileId.serial_number
@@ -81,12 +84,14 @@ class LocalFileId(messages.FileId):
 
 class LocalTimestampCorrelation(messages.TimestampCorrelation):
     local_mesg_num = 0
+
     timestamp = messages.TimestampCorrelation.timestamp
     timestamp_ms = fields.Uint32Field(field_def=4)
 
 
 class LocalRecord(messages.Record):
     local_mesg_num = 1
+
     timestamp = messages.Record.timestamp
     heart_rate = messages.Record.heart_rate
     cadence = messages.Record.cadence
@@ -94,68 +99,79 @@ class LocalRecord(messages.Record):
     power = messages.Record.power
 
 
-class LocalLap(messages.Lap):
+class LocalSegmentLap(messages.SegmentLap):
     local_mesg_num = 2
-    message_index = messages.Lap.message_index
-    timestamp = messages.Lap.timestamp
-    start_time = messages.Lap.start_time
-    total_elapsed_time = messages.Lap.total_elapsed_time
-    total_timer_time = messages.Lap.total_timer_time
-    name = messages.Lap.name
+
+    message_index = messages.SegmentLap.message_index
+    timestamp = messages.SegmentLap.timestamp
+    start_time = messages.SegmentLap.start_time
+    total_elapsed_time = messages.SegmentLap.total_elapsed_time
+    total_timer_time = messages.SegmentLap.total_timer_time
+    name = messages.SegmentLap.name
 
 
 with open('activity.fit', 'bw') as f:
-    fit = FitEncode(stream=f)
+    fit = FitEncode(buffer=f)
     file_id = LocalFileId()
     fit.add_definition(file_id)
     fit.add_record(
-        file_id.encode(manufacturer=0x000F,
-                       type=0x04,
-                       product=0x0001,
-                       serial_number=1001))
+        file_id.pack(manufacturer=0x000F, type=0x04, product=0x0001,
+                     serial_number=1001))
 
     # Add the definition of the local message to be used
     timestamp = LocalTimestampCorrelation()
     record = LocalRecord()
-    lap = LocalLap()
+    lap = LocalSegmentLap()
     fit.add_definition(timestamp)
     fit.add_definition(record)
     fit.add_definition(lap)
 
     # Adding a 'Lap 1' data records
-    fit.add_record(timestamp.encode(timestamp=1,timestamp_ms=2))
+    ts0 = floor(datetime(2021, 1, 2, 3, 45, 0).timestamp() - 631065600)
+    fit.add_record(timestamp.pack(timestamp=ts0, timestamp_ms=200))
     fit.add_record(
-        record.encode(timestamp=1,heart_rate=156, cadence=89,
-                      speed=floor((45/3.6) * 1000), power=353))
-    fit.add_record(timestamp.encode(timestamp=2,timestamp_ms=210))
+        record.pack(timestamp=ts0,heart_rate=156, cadence=89,
+                    speed=floor((45/3.6) * 1000), power=353))
+
+    ts = floor(datetime(2021, 1, 2, 3, 45, 1).timestamp() - 631065600)
+    fit.add_record(timestamp.pack(timestamp=ts, timestamp_ms=200))
     fit.add_record(
-        record.encode(timestamp=2,heart_rate=157, cadence=90,
-                      speed=floor((45.5/3.6) * 1000), power=354))
-    fit.add_record(timestamp.encode(timestamp=3,timestamp_ms=220))
+        record.pack(timestamp=ts, heart_rate=157, cadence=90,
+                    speed=floor((45.5/3.6) * 1000), power=354))
+
+    ts_1 = ts = floor(datetime(2021, 1, 2, 3, 45, 2).timestamp() - 631065600)
+    fit.add_record(timestamp.pack(timestamp=ts, timestamp_ms=220))
     fit.add_record(
-        record.encode(timestamp=3,heart_rate=158, cadence=91,
-                      speed=floor((45.8/3.6) * 1000), power=353))
+        record.pack(timestamp=ts, heart_rate=158, cadence=91,
+                    speed=floor((45.8/3.6) * 1000), power=353))
     fit.add_record(
-        lap.encode(message_index=0,
-                   timestamp=3, start_time=1,
-                   total_elapsed_time=2, total_timer_time=2, name="Lap 1"))
+        lap.pack(message_index=0,
+                 timestamp=ts, start_time=ts0,
+                 total_elapsed_time=ts - ts0, total_timer_time=ts - ts0,
+                 name="Lap 1"))
 
     # Adding a 'Lap 2' data records.
-    fit.add_record(timestamp.encode(timestamp=4,timestamp_ms=2))
+    ts = floor(datetime(2021, 1, 2, 3, 45, 3).timestamp() - 631065600)
+    fit.add_record(timestamp.pack(timestamp=ts, timestamp_ms=400))
     fit.add_record(
-        record.encode(timestamp=4, heart_rate=156, cadence=89,
-                      speed=floor((45/3.6) * 1000), power=353))
-    fit.add_record(timestamp.encode(timestamp=5,timestamp_ms=210))
+        record.pack(timestamp=ts, heart_rate=156, cadence=89,
+                    speed=floor((45/3.6) * 1000), power=353))
+
+    ts = floor(datetime(2021, 1, 2, 3, 45, 4).timestamp() - 631065600)
+    fit.add_record(timestamp.pack(timestamp=ts, timestamp_ms=210))
     fit.add_record(
-        record.encode(timestamp=5,heart_rate=157, cadence=90,
-                      speed=floor((45.5/3.6) * 1000), power=354))
-    fit.add_record(timestamp.encode(timestamp=6,timestamp_ms=220))
+        record.pack(timestamp=ts,heart_rate=157, cadence=90,
+                   speed=floor((45.5/3.6) * 1000), power=354))
+
+    ts = floor(datetime(2021, 1, 2, 3, 45, 5).timestamp() - 631065600)
+    fit.add_record(timestamp.pack(timestamp=ts, timestamp_ms=220))
     fit.add_record(
-        record.encode(timestamp=6,heart_rate=158, cadence=91,
-                      speed=floor((45.8/3.6) * 1000), power=353))
+        record.pack(timestamp=ts,heart_rate=158, cadence=91,
+                    speed=floor((45.8/3.6) * 1000), power=353))
     fit.add_record(
-        lap.encode(message_index=1,
-                   timestamp=6, start_time=3,
-                   total_elapsed_time=3, total_timer_time=3, name="Lap 2"))
+        lap.pack(message_index=1,
+                 timestamp=ts, start_time=ts_1,
+                 total_elapsed_time=ts - ts_1, total_timer_time=ts - ts_1,
+                 name="Lap 2"))
     fit.finish()
 ```

@@ -70,7 +70,7 @@ class Lap(Message):
 class Record(Message):
     mesg_num = 20
 
-    timestamp = fields.DateTimeField(field_def=254)
+    timestamp = fields.DateTimeField(field_def=253)
     position_lat = fields.Sint32Field(field_def=0)
     position_long = fields.Sint32Field(field_def=1)
     altitude = fields.Uint16Field(field_def=2)
@@ -82,6 +82,25 @@ class Record(Message):
     compressed_speed_distance = fields.ByteField(field_def=8, size=3)
     grade = fields.Sint16Field(field_def=9)
     # The remaining 10 to 120 fields can be added by those who need them.
+
+
+class SegmentLap(Message):
+    mesg_num = 142
+
+    message_index = fields.MessageIndexField(field_def=254)
+    timestamp = fields.DateTimeField(field_def=253)
+    event = fields.EventField(field_def=0)
+    event_type = fields.EventTypeField(field_def=1)
+    start_time = fields.DateTimeField(field_def=2)
+    start_position_lat = fields.Sint32Field(field_def=3)
+    start_position_long = fields.Sint32Field(field_def=4)
+    end_position_lat = fields.Sint32Field(field_def=5)
+    end_position_long = fields.Sint32Field(field_def=6)
+    total_elapsed_time = fields.Uint32Field(field_def=7)
+    total_timer_time = fields.Uint32Field(field_def=8)
+    total_distance = fields.Uint32Field(field_def=9)
+    # The remaining 10 to 90 fields can be added by those who need them.
+    name = fields.StringField(field_def=29, size=16)
 
 
 class TimestampCorrelation(Message):
