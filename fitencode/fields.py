@@ -1,7 +1,7 @@
 from struct import pack
 
 
-class FieldData:
+class Field:
     field_type = 0x00
     size = 1
     pack_format = 'B'
@@ -14,62 +14,62 @@ class FieldData:
     def definition(self):
         return pack('BBB', self.field_def, self.size, self.field_type)
 
-    def encode(self, value: object) -> bytes:
+    def pack(self, value: object) -> bytes:
         return pack(self.pack_format, self.to_fit_value(value))
 
     def to_fit_value(self, value: object) -> object:
         return value
 
 
-class EnumField(FieldData):
+class EnumField(Field):
     field_type = 0x00
     size = 1
     pack_format = 'B'
 
 
-class Sint8Field(FieldData):
+class Sint8Field(Field):
     field_type = 0x01
     size = 1
     pack_format = 'B'
 
 
-class Uint8Field(FieldData):
+class Uint8Field(Field):
     field_type = 0x02
     size = 1
     pack_format = 'B'
 
 
-class Sint16Field(FieldData):
+class Sint16Field(Field):
     field_type = 0x83
     size = 2
     pack_format = '>h'
 
 
-class Uint16Field(FieldData):
+class Uint16Field(Field):
     field_type = 0x84
     size = 2
     pack_format = '>H'
 
 
-class Sint32Field(FieldData):
+class Sint32Field(Field):
     field_type = 0x85
     size = 4
     pack_format = '>l'
 
 
-class Uint32Field(FieldData):
+class Uint32Field(Field):
     field_type = 0x86
     size = 4
     pack_format = '>L'
 
 
-class Uint32zField(FieldData):
+class Uint32zField(Field):
     field_type = 0x8C
     size = 4
     pack_format = '>L'
 
 
-class StringField(FieldData):
+class StringField(Field):
     field_type = 0x07
     size = 7
 
@@ -81,7 +81,7 @@ class StringField(FieldData):
         return str(value).encode('UTF-8')
 
 
-class ByteField(FieldData):
+class ByteField(Field):
     field_type = 0x0D
     size = 1
 
