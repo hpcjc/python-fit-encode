@@ -63,6 +63,12 @@ class Uint32Field(Field):
     pack_format = '>L'
 
 
+class Float32Field(Field):
+    field_type = 0x88
+    size = 4
+    pack_format = '>f'
+
+
 class Uint32zField(Field):
     field_type = 0x8C
     size = 4
