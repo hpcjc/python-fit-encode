@@ -26,8 +26,16 @@ class FitEncode:
         header_crc = self._crc(0, header)
         return header + pack('<H', header_crc)
 
-    def add_definition(self, mesg: messages.Message):
-        self.add_record(mesg.definition)
+    def add_definition(self, mesg: messages.Message, size: dict = None):
+        """ Add a field definition record.
+
+        :param size: A dict can be given the key of the field name and
+                     the value of the field size to change the field size.
+        """
+        if size:
+            self.add_record(mesg.definition_override_by(size))
+        else:
+            self.add_record(mesg.definition)
 
     def add_record(self, record: bytes):
         self.length += self.buffer.write(record)
