@@ -27,6 +27,21 @@ class Message:
                       reserved, is_big_endian, self.mesg_num, len(fields_))
         return header + b''.join(fields_)
 
+    def definition_override_by(self, size: dict) -> bytes:
+        # Field definitions of different sizes
+        fields_ = []
+        for name, f in self.fields:
+            if name in size:
+                fields_.append(pack('BBB', f.field_def, size[name], f.field_type))
+            else:
+                fields_.append(f.definition)
+        reserved = 0
+        is_big_endian = 1
+        header = pack('>BBBHB',
+                      MESSAGE_DEFINITION | self.local_mesg_num,
+                      reserved, is_big_endian, self.mesg_num, len(fields_))
+        return header + b''.join(fields_)
+
     def pack(self, **kwargs) -> bytes:
         contents = list()
         for name, field in self.fields:
